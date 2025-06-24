@@ -10,6 +10,7 @@ Description:  This application will serve as a platform for users to manage thei
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const createError = require("http-errors");
+const books = require("../database/books");
 
 // Creates an Express application
 const app = express();
@@ -99,6 +100,37 @@ Happy Coding!</p>
 });
 //
 //
+
+// GET endpoint for /api/books
+app.get('/api/books', async (req, res, next) => {
+  try {
+    const allBooks = await books.find();
+    console.log('All Books:', allBooks); // Logs all books
+    res.send(allBooks); // Sends response with all books
+  } catch (err) {
+    console.error('Error:', err.message) // Logs error message
+    next(err); // Passes error to next middleware
+  }
+});
+
+// GET endpoint for /api/books/:id
+app.get('/api/books/:id', async (req, res, next) => {
+  try {
+    let {id} = req.params;
+    id = parseInt(id);
+
+    // Validates req.params.id is a number
+    if (isNaN(id)) {
+      return next(createError(400, 'Input must be a number'));
+    }
+    const book = await books.findOne({id: Number(req.params.id)});
+    console.log('Book:', book); // Logs a single book
+    res.send(book); // Sends response with a single book
+  } catch (err) {
+    console.error('Error:', err.message);
+    next(err);
+  }
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
