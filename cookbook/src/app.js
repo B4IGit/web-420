@@ -10,6 +10,7 @@ Description:  This application will serve as a platform for food enthusiasts to 
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const createError = require("http-errors");
+const recipes = require("../database/recipes")
 
 // Creates an Express application
 const app = express();
@@ -64,6 +65,36 @@ main a:hover { color: #EF5350; text-decoration: underline;}
 </html>
 `; // end HTML content for the landing page
   res.send(html); // Sends the HTML content to the client
+});
+
+// GET endpoint for /api/recipes
+app.get('/api/recipes', async (req, res, next) => {
+  try {
+    const allRecipes = await recipes.find();
+    console.log("All Recipes:", allRecipes); // Logs all recipes
+    res.send(allRecipes); // Sends response with all recipes
+  } catch (err) {
+    console.error("Error:", err.message); // Logs error message
+    next(err); // Passes error to the next middleware
+  }
+})
+
+// GET endpoint for /api/recipes/:id
+app.get('/api/recipes/:id', async (req, res, next) => {
+  try {
+    // Add validation to the GET endpoint that checks if the req.params.id is a number
+    let { id } = req.params;
+    id = parseInt(id);
+    if (isNaN(id)) {
+      return next(createError(400, "Input must be a number"));
+    }
+    const recipe = await recipes.findOne({ id: id });
+    console.log("Recipe: ", recipe);
+    res.send(recipe);
+  } catch (err) {
+    console.error("Error:", err.message);
+    next(err);
+  }
 });
 
 // catch 404 and forward to error handler
