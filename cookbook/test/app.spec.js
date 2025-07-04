@@ -29,3 +29,17 @@ describe("Chapter 3: API Tests", () => {
     expect(res.body.message).toEqual("Input must be a number");
   });
 });
+
+describe("Chapter 4: API Tests", () => {
+  it("it should return a 201 status code when adding a new recipe", async () => {
+    const res = await request(app). post("api/recipes").send({
+      id: 99,
+      name: "Grilled Cheese",
+      ingredients: ["bread", "cheese", "butter"],
+    });
+
+    expect(res.statusCode).toEqual(201);
+  });
+
+
+})
