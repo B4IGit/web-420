@@ -32,7 +32,7 @@ describe("Chapter 3: API Tests", () => {
 
 describe("Chapter 4: API Tests", () => {
   it("it should return a 201 status code when adding a new recipe", async () => {
-    const res = await request(app). post("api/recipes").send({
+    const res = await request(app). post("/api/recipes").send({
       id: 99,
       name: "Grilled Cheese",
       ingredients: ["bread", "cheese", "butter"],
@@ -41,5 +41,13 @@ describe("Chapter 4: API Tests", () => {
     expect(res.statusCode).toEqual(201);
   });
 
+  it('should return a 400 status code when adding a new recipe with missing name', async () => {
+    const res = await request(app).post("/api/recipes").send({
+      id: 100,
+      ingredients: ["bread", "cheese", "butter"]
+    });
 
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual("Bad Request");
+  })
 })
