@@ -10,7 +10,8 @@ Description:  This application will serve as a platform for food enthusiasts to 
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const createError = require("http-errors");
-const recipes = require("../database/recipes")
+const recipes = require("../database/recipes");
+const request = require("supertest");
 
 // Creates an Express application
 const app = express();
@@ -67,6 +68,8 @@ main a:hover { color: #EF5350; text-decoration: underline;}
   res.send(html); // Sends the HTML content to the client
 });
 
+///// GET ENDPOINTS /////
+
 // GET endpoint for /api/recipes
 app.get('/api/recipes', async (req, res, next) => {
   try {
@@ -77,7 +80,7 @@ app.get('/api/recipes', async (req, res, next) => {
     console.error("Error:", err.message); // Logs error message
     next(err); // Passes error to the next middleware
   }
-})
+});
 
 // GET endpoint for /api/recipes/:id
 app.get('/api/recipes/:id', async (req, res, next) => {
@@ -93,6 +96,29 @@ app.get('/api/recipes/:id', async (req, res, next) => {
     res.send(recipe);
   } catch (err) {
     console.error("Error:", err.message);
+    next(err);
+  }
+});
+
+///// POST ENDPOINTS /////
+
+app.post('/api/recipes', async (req, res, next) => {
+  try {
+    const newRecipe = req.body;
+
+    const expectedKeys = ["id", "name", "ingredients"];
+    const receivedKeys = Object.keys(newRecipe);
+
+    if (!receivedKeys.every(key => expectedKeys.includes(key)) || receivedKeys.length !== expectedKeys.length) {
+      console.error('Bad Request: Missing keys or extra keys', receivedKeys);
+      return next(createError(400, 'Bad Request'));
+    }
+
+    const result = await recipes.insertOne(newRecipe);
+    console.log('Result:', result);
+    res.status(201).send({id: result.ops[0].id});
+  } catch (err) {
+    console.error('Error:', err.message);
     next(err);
   }
 });
