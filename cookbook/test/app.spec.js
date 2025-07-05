@@ -1,5 +1,6 @@
 const app = require("../src/app");
 const request = require("supertest");
+const res = require("express/lib/response");
 
 describe("Chapter 3: API Tests", () => {
   it("should return an array of recipes", async () => {
@@ -28,7 +29,7 @@ describe("Chapter 3: API Tests", () => {
     expect(res.statusCode).toEqual(400);
     expect(res.body.message).toEqual("Input must be a number");
   });
-});
+}); // End chapter 3: API Test
 
 describe("Chapter 4: API Tests", () => {
   it("it should return a 201 status code when adding a new recipe", async () => {
@@ -48,6 +49,12 @@ describe("Chapter 4: API Tests", () => {
     });
 
     expect(res.statusCode).toEqual(400);
-    expect(res.body.message).toEqual("Bad Request");
-  })
-})
+    expect(res.body.message).toEqual('Bad Request');
+  });
+
+  it('should return a 204 status code when deleting a recipe', async () => {
+    const res = await request(app).delete("/api/recipes/99");
+
+    expect(res.statusCode).toEqual(204);
+  });
+}) // End chapter 4: API Tests
