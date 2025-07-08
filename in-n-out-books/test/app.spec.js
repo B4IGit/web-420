@@ -1,5 +1,7 @@
 const app = require('../src/app');
 const request = require('supertest');
+const res = require("express/lib/response");
+
 
 describe('Chapter 3: API Tests', () => {
   it ('should return an array of books', async () => {
@@ -58,3 +60,42 @@ describe('Chapter 4: API Tests', () => {
     expect(res.statusCode).toEqual(204);
   });
 }); // End chapter 4: API Tests
+
+describe('Chapter 5: API Tests', () => {
+  it('should return a 204 status code when updating a book', async () => {
+    const res = await request(app).put('/api/books/1').send({
+      title: 'Lord of the Flies',
+      author: 'William Golding'
+    });
+
+    expect(res.statusCode).toEqual(204);
+  });
+
+  it('should return a 400 status code when updating a book with a non-numeric id', async () => {
+    const res = await request(app).put('/api/books/foo').send({
+      title: 'Test Book',
+      author: 'Test Author'
+    });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual('Input must be a number');
+  });
+
+  it('should return a 400 status code when updating a book with a missing title', async () => {
+    const res = await request(app).put('/api/books/1').send({
+      author: 'test'
+    });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual('Bad Request');
+
+    const res2 = await request(app).put('/api/books/1').send({
+      title: 'Test Title',
+      author: 'Test Author',
+      extraKey: 'extra'
+    });
+
+    expect(res2.statusCode).toEqual(400);
+    expect(res2.body.message).toEqual('Bad Request');
+  });
+}); // End chapter 5: API Tests
