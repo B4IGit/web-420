@@ -154,6 +154,38 @@ app.post('/api/books', async (req, res, next) => {
   }
 });
 
+// PUT endpoint for updating a single book
+app.put('/api/books/:id', async (req, res, next) => {
+  try {
+    let {id} = req.params;
+    let book = req.body;
+    id = parseInt(id);
+
+    if (isNaN(id)) {
+      return next(createError(400, 'Input must be a number'));
+    }
+
+    const expectedKeys = ['title', 'author'];
+    const receivedKeys = Object.keys(book);
+
+    if (!receivedKeys.every(key => expectedKeys.includes(key)) || receivedKeys.length !== expectedKeys.length) {
+      console.error('Bad Request: Missing keys or extra keys', receivedKeys);
+      return next(createError(400, 'Bad Request'));
+    }
+
+    const result = await books.updateOne({id: id}, book);
+    console.log('Result:', result);
+    res.status(204).send();
+  } catch (err) {
+    if (err.message === 'No matching item found') {
+      console.log('Book not found', err.message);
+      return next(createError(404, 'Book not found'));
+    }
+    console.error('Error:', err.message);
+    next(err);
+  }
+});
+
 // DELETE endpoint for deleting a book
 app.delete('/api/books/:id', async (req, res, next) => {
   try {
