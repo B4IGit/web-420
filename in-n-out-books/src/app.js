@@ -11,6 +11,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const createError = require("http-errors");
 const books = require("../database/books");
+const users = require("../database/users");
 
 // Creates an Express application
 const app = express();
@@ -150,6 +151,50 @@ app.post('/api/books', async (req, res, next) => {
     res.status(201).send({id: result.ops[0].id});
   } catch (err) {
     console.error('Error:', err.message);
+    next(err);
+  }
+});
+
+// /api/login
+app.post('/api/login', async (req, res, next) => {
+  console.log('Request body: ', req.body);
+  try {
+    const user = req.body;
+
+    const expectedKeys = ['email', 'password'];
+    const receivedKeys = Object.keys(user);
+
+    // Validate keys: must match expected exactly
+    if (!receivedKeys.every(key => expectedKeys.includes(key)) || receivedKeys.length !== expectedKeys.length) {
+      console.error('Bad Request: Missing keys or extra keys', receivedKeys);
+      return next(createError(400, 'Bad Request'));
+    }
+
+    // Check for user by email
+    let existingUser;
+    try {
+      existingUser = await users.findOne({ email: user.email });
+    } catch (err) {
+      existingUser = null;
+    }
+
+    if (!existingUser) {
+      console.error('Unauthorized: No matching user');
+      return next(createError(401, 'Unauthorized'));
+    }
+
+    // Compare passwords
+    const validPassword = bcrypt.compareSync(user.password, existingUser.password);
+    if (!validPassword) {
+      console.error('Unauthorized: Invalid password');
+      return next(createError(401, 'Unauthorized'));
+    }
+
+    // Success
+    res.status(200).send({ message: 'Authentication successful' });
+
+  } catch (err) {
+    console.error('Login error:', err);
     next(err);
   }
 });
