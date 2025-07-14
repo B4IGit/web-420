@@ -2,6 +2,8 @@ const app = require("../src/app");
 const request = require("supertest");
 const res = require("express/lib/response");
 
+
+
 describe("Chapter 3: API Tests", () => {
   it("should return an array of recipes", async () => {
     const res = await request(app).get('/api/recipes');
@@ -33,7 +35,7 @@ describe("Chapter 3: API Tests", () => {
 
 describe("Chapter 4: API Tests", () => {
   it("it should return a 201 status code when adding a new recipe", async () => {
-    const res = await request(app). post("/api/recipes").send({
+    const res = await request(app).post("/api/recipes").send({
       id: 99,
       name: "Grilled Cheese",
       ingredients: ["bread", "cheese", "butter"],
@@ -58,3 +60,82 @@ describe("Chapter 4: API Tests", () => {
     expect(res.statusCode).toEqual(204);
   });
 }) // End chapter 4: API Tests
+
+describe('Chapter 5: API Tests', () => {
+  it('should return a 204 status code when updating a recipe', async () => {
+    const res = await request(app).put('/api/recipes/1').send({
+      name: 'Pancakes',
+      ingredients: ['flour', 'milk', 'eggs', 'sugar']
+    });
+
+    expect(res.statusCode).toEqual(204);
+  });
+
+  it('should return a 400 status code when updating a recipe with a non-numeric id', async () => {
+    const res = await request(app).put('/api/recipes/foo').send({
+      name: 'Test Recipe',
+      ingredients: ['test', 'test']
+    });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual('Input must be a number');
+  });
+
+  it('should return a 400 status code when updating a recipe with missing keys or extra keys', async () => {
+    const res = await request(app).put('/api/recipes/1').send({
+      name: 'Test Recipe'
+    });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual('Bad Request');
+
+    const res2 = await request(app).put('/api/recipes/1').send({
+      name: 'Test Recipe',
+      ingredients: ['test', 'test'],
+      extraKey: 'extra'
+    });
+
+    expect(res2.statusCode).toEqual(400);
+    expect(res2.body.message).toEqual('Bad Request');
+  });
+}); // End chapter 5: API Tests
+
+describe('Chapter 6: API Tests', () => {
+  it('should return a 200 status code with a message of "Registration successful" when registering a new user', async () => {
+    const res = await request(app).post('/api/register').send({
+      email: 'cedric@hogwarts.edu',
+      password: 'diggory'
+    });
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.message).toEqual('Registration successful');
+  });
+
+  it('should return a 409 status code with a message of "Conflict" when registering a user with a duplicated email', async () => {
+    const res = await request(app).post('/api/register').send({
+      email: 'harry@hogwarts.edu',
+      password: 'potter'
+    });
+
+    expect(res.statusCode).toEqual(409);
+    expect(res.body.message).toEqual('Conflict');
+  });
+
+  it('should return a 400 status code when registering a new user with too many or too few parameter values', async () => {
+    const res = await request(app).post('/api/register').send({
+      email: 'cedric@hogwarts.edu',
+      password: 'diggory',
+      extraKey: 'extra'
+    });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual('Bad Request');
+
+    const res2 = await request(app).post('/api/register').send({
+      email: 'cedric@hogwarts.edu'
+    });
+
+    expect(res2.statusCode).toEqual(400);
+    expect(res2.body.message).toEqual('Bad Request');
+  });
+}) // End chapter 6: API Tests
