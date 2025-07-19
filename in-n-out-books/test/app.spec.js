@@ -3,6 +3,8 @@ const request = require('supertest');
 const res = require("express/lib/response");
 
 
+
+
 describe('Chapter 3: API Tests', () => {
   it ('should return an array of books', async () => {
     const res = await request(app).get('/api/books');
@@ -132,3 +134,46 @@ describe('Chapter 6: API Tests', () => {
     expect(res2.body.message).toBe('Bad Request');
   });
 });
+
+describe("Chapter 7: API Tests", () => {
+  it("should return a 200 status with 'Security question successfully answered' message", async () => {
+    const res = await request(app).post('/api/users/hermione@hogwarts.edu/verify-security-questions').send({
+      securityQuestions: [
+        {answer: "Crookshanks"},
+        {answer: "Hogwarts: A History"},
+        {answer: "Wilkins"}
+      ],
+      newPassword: 'password'
+    });
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.message).toEqual('Security questions successfully answered');
+  });
+
+  it("should return a 400 status code with ‘Bad Request’ message when the request body fails ajv validation", async () => {
+    const res = await request(app).post("/api/users/hermione@hogwarts.edu/verify-security-questions").send({
+      securityQuestions: [
+        { answer: "Crookshanks", question: "What is your pet's name?" },
+        {  answer: "Hogwarts: A History", myAge: "17"}
+      ],
+      newPassword: "Password"
+    });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual('Bad Request');
+  });
+
+  it("should return a 401 status code with ‘Unauthorized’ message when the security questions are incorrect", async () => {
+    const res = await request(app).post("/api/users/hermione@hogwarts.edu/verify-security-questions").send({
+      securityQuestions: [
+        { answer: "Crookshanks" },
+        { answer: "Hogwarts: A History" },
+        { answer: "Wrong Answer" }
+      ],
+      newPassword: "password"
+    });
+
+    expect(res.statusCode).toEqual(401);
+    expect(res.body.message).toEqual('Unauthorized');
+  });
+}); // End chapter 7: API Tests
